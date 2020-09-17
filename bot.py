@@ -1,5 +1,6 @@
 import discord
 import random
+import asyncio
 
 client = discord.Client()
 
@@ -76,15 +77,26 @@ async def on_message(message):
         # Assign roles to members randomly
         random.shuffle(members)
         new_imposters = 0
-        for m in members:
-            await m.remove_roles(imposter_role, crewmate_role)
-            if new_imposters < imposters:
-                print(m.display_name + " is an imposter")
-                await m.add_roles(imposter_role)
-                new_imposters += 1
-            else:
-                await m.add_roles(crewmate_role)
-                print(m.display_name + " is a crewmate")
+
+        # remove_roles = []
+        # for m in members:
+        #     remove_roles.append(m.remove_roles(imposter_role, crewmate_role))
+        res = await asyncio.gather(*(m.remove_roles(imposter_role, crewmate_role) for m in members))
+        print(res)
+
+        await asyncio.gather(*(m.add_roles(imposter_role) for m in members[:imposters]))
+        print("Done assigning imposters")
+        await asyncio.gather(*(m.add_roles(crewmate_role) for m in members[imposters:]))
+        print("Done assigning crewmates")
+
+        # for m in members:
+        #     if new_imposters < imposters:
+        #         print(m.display_name + " is an imposter")
+        #         await m.add_roles(imposter_role)
+        #         new_imposters += 1
+        #     else:
+        #         await m.add_roles(crewmate_role)
+        #         print(m.display_name + " is a crewmate")
         print("Done assigning roles")
         await message.channel.send(
             "There are {0} crewmates and {1} imposters Among Us!".format(str(len(members) - imposters), str(imposters)))
@@ -92,4 +104,6 @@ async def on_message(message):
 
 # Blocking function call, nothing will run after this
 token_file = open("bot_token.txt")
-client.run(token_file.read())
+res = token_file.read()
+print(res)
+client.run(res)
