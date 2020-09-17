@@ -12,11 +12,15 @@ class Guild:
     imposter_role = None
     crewmate_role = None
     among_us_role = None
+    setup_done = False
 
     def __init__(self, guild):
         self.guild = guild
 
     async def setup(self):
+        if self.setup_done:
+            return
+
         print("\t\t==== Setting up: " + self.guild.name + " ====")
 
         for r in self.guild.roles:
@@ -43,6 +47,7 @@ class Guild:
             self.crewmate_role = await self.guild.create_role(name="Crewmate", color=discord.colour.Color.dark_blue())
 
         self.find_players()
+        self.setup_done = True
 
     async def new_game(self):
         self.find_players()
